@@ -31,13 +31,14 @@ const EMPTY = {
   kind: 'ФОП', name: '', code: '', addr1: '', addr2: '', tax: '',
   spos: '', sname: '', basis: 'Статут', dno: '', ddate: '',
   iban: '', bank: '', email: '', phone: '',
-  prem: '', start: '01.11.2026', act: '', agree: false, files: [], savedAt: ''
+  prem: '', start: '01.11.2026', act: '', agree: false, files: [], ref: '', savedAt: ''
 };
 
 // Посилання може підставити приміщення, початок і вид діяльності: index.html?prem=…&start=…&act=…
+// ref — мітка посилання (кому його надіслали); орендар її не бачить, вона їде у відповіді.
 function fromLink() {
   const q = new URLSearchParams(location.search), o = {};
-  ['prem', 'start', 'act'].forEach(k => { if (q.get(k)) o[k] = q.get(k).slice(0, 120); });
+  ['prem', 'start', 'act', 'ref'].forEach(k => { if (q.get(k)) o[k] = q.get(k).slice(0, 120); });
   return o;
 }
 
@@ -45,7 +46,7 @@ function load() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
   const d = Object.assign({}, EMPTY, s);
-  Object.entries(fromLink()).forEach(([k, v]) => { if (!d[k]) d[k] = v; });
+  Object.entries(fromLink()).forEach(([k, v]) => { if (!d[k] || k === 'ref') d[k] = v; });
   return d;
 }
 function forget() { try { localStorage.removeItem(KEY); } catch (e) {} }
