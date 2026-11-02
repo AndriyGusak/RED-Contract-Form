@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Реквізити орендаря</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1>Реквізити орендаря</h1>
+      <div class="s2">Дані для договору оренди</div>
+    </div>
+    <div class="steps"><b>1 Реквізити</b><span>·</span><span>2 Перевірка</span></div>
+  </header>
+
+  <form id="f" novalidate autocomplete="on">
+    <section class="card">
+      <div class="seg" role="group" aria-label="Хто орендар">
+        <button type="button" data-kind="ФОП">ФОП</button>
+        <button type="button" data-kind="ТОВ">Юрособа</button>
+      </div>
+      <div class="g2">
+        <div class="field full"><label for="name" id="l-name">ПІБ повністю</label><input id="name" name="name"></div>
+        <div class="field"><label for="code" id="l-code">РНОКПП</label><input id="code" name="code" class="num" inputmode="numeric" maxlength="10"><span class="err" id="e-code"></span></div>
+        <div class="field"><label for="tax">Податковий статус</label><select id="tax" name="tax"><option value="">Оберіть</option></select></div>
+        <div class="field full">
+          <span class="lbl">Адреса <span class="tip" tabindex="0" data-tip="Як у виписці з ЄДР. У договорі буде у два рядки.">i</span></span>
+          <div class="stack">
+            <input id="addr1" name="addr1" placeholder="індекс, місто," aria-label="Адреса, рядок 1: індекс, місто">
+            <input id="addr2" name="addr2" placeholder="вулиця, будинок, офіс / кв." aria-label="Адреса, рядок 2: вулиця, будинок, офіс або квартира">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="signer" hidden>
+      <h2>Хто підписує</h2>
+      <div class="g2">
+        <div class="field"><label for="spos">Посада</label><input id="spos" name="spos" placeholder="директор"></div>
+        <div class="field"><label for="sname">ПІБ повністю</label><input id="sname" name="sname"></div>
+        <div class="field full">
+          <span class="lbl">Діє на підставі</span>
+          <div class="seg" role="group" aria-label="Підстава повноважень" style="margin:0">
+            <button type="button" data-basis="Статут">Статуту</button>
+            <button type="button" data-basis="Довіреність">Довіреності</button>
+          </div>
+        </div>
+        <div class="field" data-dov hidden><label for="dno">№ довіреності</label><input id="dno" name="dno"></div>
+        <div class="field" data-dov hidden><label for="ddate">Дата довіреності</label><input id="ddate" name="ddate" class="num" placeholder="дд.мм.рррр" inputmode="numeric"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Рахунок і зв’язок</h2>
+      <div class="g2">
+        <div class="field full"><label for="iban">IBAN</label><input id="iban" name="iban" class="num" placeholder="UA00 0000 0000 0000 0000 0000 0000 0" autocomplete="off" spellcheck="false"><span class="err" id="e-iban"></span></div>
+        <div class="field full"><label for="bank">Банк <span class="tip" tabindex="0" data-tip="Підставляється за кодом банку в IBAN. Якщо не підставився — впишіть.">i</span></label><input id="bank" name="bank"></div>
+        <div class="field"><label for="email">E-mail для договору й рахунків</label><input id="email" name="email" type="email" inputmode="email"><span class="err" id="e-email"></span></div>
+        <div class="field"><label for="phone">Телефон</label><input id="phone" name="phone" type="tel" class="num" placeholder="+380 __ ___ __ __"><span class="err" id="e-phone"></span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Приміщення</h2>
+      <div class="g2">
+        <div class="field full"><label for="prem">Адреса або номер приміщення</label><input id="prem" name="prem"></div>
+        <div class="field"><label for="start">Початок оренди</label><input id="start" name="start" class="num" placeholder="дд.мм.рррр" inputmode="numeric"></div>
+        <div class="field"><label for="act">Що буде в приміщенні</label><input id="act" name="act" placeholder="магазин, кафе, офіс…"></div>
+      </div>
+    </section>
+
+    <label class="chk card" for="agree"><input type="checkbox" id="agree" name="agree"><span>Погоджуюсь на обробку персональних даних для укладення договору</span></label>
+
+    <div class="bar">
+      <span class="hint" id="saved"></span>
+      <button type="submit" class="btn pri">Перевірити <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+  </form>
+</main>
+
+<script src="config.js"></script>
+<script src="rekvizyty.js"></script>
+<script>
+const f = document.getElementById('f');
+const $ = id => document.getElementById(id);
+let d = load();
+
+TAX.forEach(t => $('tax').add(new Option(t, t)));
+
+function paint() {
+  const fop = d.kind === 'ФОП';
+  document.querySelectorAll('[data-kind]').forEach(b => b.setAttribute('aria-pressed', b.dataset.kind === d.kind));
+  document.querySelectorAll('[data-basis]').forEach(b => b.setAttribute('aria-pressed', b.dataset.basis === d.basis));
+  $('signer').hidden = fop;
+  document.querySelectorAll('[data-dov]').forEach(x => x.hidden = d.basis !== 'Довіреність');
+  $('l-name').textContent = fop ? 'ПІБ повністю' : 'Повна назва';
+  $('name').placeholder = fop ? 'Прізвище Ім’я По батькові' : 'ТОВ «…»';
+  $('l-code').textContent = fop ? 'РНОКПП' : 'ЄДРПОУ';
+  $('code').maxLength = fop ? 10 : 8;
+  $('code').placeholder = fop ? '10 цифр' : '8 цифр';
+}
+
+function fill() {
+  ['name','code','addr1','addr2','tax','spos','sname','dno','ddate','bank','email','phone','prem','start','act'].forEach(k => $(k).value = d[k] || '');
+  $('iban').value = ibanPretty(d.iban);
+  $('agree').checked = !!d.agree;
+  paint();
+}
+
+function check(id, ok, msg) {
+  const v = $(id).value.trim();
+  const bad = v && !ok;
+  $(id).closest('.field').classList.toggle('bad', bad);
+  $('e-' + id).textContent = bad ? msg : '';
+}
+
+function validate() {
+  check('code', d.kind === 'ФОП' ? rnokppOk(d.code) : edrpouOk(d.code), d.kind === 'ФОП' ? 'Перевірте РНОКПП: 10 цифр' : 'ЄДРПОУ — 8 цифр');
+  check('iban', ibanOk(d.iban), 'IBAN не сходиться: UA і 27 цифр');
+  check('email', emailOk(d.email), 'Перевірте e-mail');
+  check('phone', phoneOk(d.phone), 'Формат +380 і 9 цифр');
+}
+
+function stamp() {
+  $('saved').textContent = save(d) ? 'Збережено в цьому браузері' : '';
+}
+
+f.addEventListener('input', e => {
+  const t = e.target;
+  if (!t.name) return;
+  if (t.name === 'agree') d.agree = t.checked;
+  else if (t.name === 'iban') {
+    d.iban = ibanClean(t.value);
+    const b = bankByIban(d.iban);
+    if (b && (!d.bank || Object.values(BANKS).includes(d.bank))) { d.bank = b; $('bank').value = b; }
+  } else d[t.name] = t.value;
+  validate(); stamp();
+});
+$('iban').addEventListener('blur', e => e.target.value = ibanPretty(d.iban));
+$('phone').addEventListener('blur', e => {
+  const x = digits(e.target.value);
+  const n = x.length === 10 && x[0] === '0' ? '38' + x : x;
+  if (n.length === 12 && n.startsWith('380')) { d.phone = `+${n.slice(0,3)} ${n.slice(3,5)} ${n.slice(5,8)} ${n.slice(8,10)} ${n.slice(10)}`; e.target.value = d.phone; stamp(); validate(); }
+});
+
+document.addEventListener('click', e => {
+  const k = e.target.closest('[data-kind]'), b = e.target.closest('[data-basis]');
+  if (k) { d.kind = k.dataset.kind; paint(); validate(); stamp(); }
+  if (b) { d.basis = b.dataset.basis; paint(); stamp(); }
+});
+
+f.addEventListener('submit', e => {
+  e.preventDefault();
+  stamp();
+  location.href = 'perevirka.html';
+});
+
+fill(); validate();
+</script>
+</body>
+</html>
