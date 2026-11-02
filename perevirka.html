@@ -134,7 +134,7 @@ $('open').onchange = async e => {
     const x = JSON.parse(await file.text());
     if (typeof x !== 'object' || !x) throw 0;
     const clean = {};
-    Object.keys(EMPTY).forEach(k => { if (k in x) clean[k] = typeof EMPTY[k] === 'boolean' ? !!x[k] : String(x[k] ?? ''); });
+    Object.keys(EMPTY).forEach(k => { if (k in x) clean[k] = Array.isArray(EMPTY[k]) ? (Array.isArray(x[k]) ? x[k] : []) : typeof EMPTY[k] === 'boolean' ? !!x[k] : String(x[k] ?? ''); });
     d = Object.assign({}, EMPTY, clean);
     save(d); render(); toast('Файл відкрито');
   } catch (err) { toast('Це не файл реквізитів'); }

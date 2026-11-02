@@ -74,6 +74,16 @@ table.rq .num{font-variant-numeric:tabular-nums}
 .doc{border:1px solid var(--line);border-radius:var(--r-sm);padding:16px 18px;font:14px/1.55 'Times New Roman',Times,serif;background:var(--surface)}
 .doc b{display:block;margin-bottom:2px}
 .sealed{font-size:12px;line-height:1.4;word-break:break-all;background:var(--sunk);border-radius:var(--r-sm);padding:12px;margin:12px 0;max-height:140px;overflow:auto;user-select:all}
+.docs{display:flex;flex-direction:column;gap:8px}
+.drop,.doc-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);border-radius:var(--r-sm);padding:12px 14px}
+.drop{background:transparent;border:1.5px dashed var(--line);cursor:pointer}
+.drop:hover{border-color:var(--accent);background:var(--accent-soft)}
+.doc-row{background:var(--sunk);border:1px solid var(--line)}
+.drop svg,.doc-row svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.6;stroke-linejoin:round}
+.drop span,.doc-row span{display:flex;flex-direction:column;flex:1;min-width:0}
+.drop small,.doc-row small{color:var(--muted);font-size:12.5px}
+.doc-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.btn.ico.sm{width:32px;height:32px;font-size:13px}
 .empty{text-align:center;padding:36px 16px}
 .empty p{margin:6px 0 18px}
 @media (max-width:560px){

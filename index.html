@@ -57,6 +57,12 @@
     </section>
 
     <section class="card">
+      <h2>Документи</h2>
+      <div class="docs" id="docs"></div>
+      <input type="file" id="docfile" accept="application/pdf,image/*" hidden>
+    </section>
+
+    <section class="card">
       <h2>Рахунок і зв’язок</h2>
       <div class="g2">
         <div class="field full"><label for="iban">IBAN</label><input id="iban" name="iban" class="num" placeholder="UA00 0000 0000 0000 0000 0000 0000 0" autocomplete="off" spellcheck="false"><span class="err" id="e-iban"></span></div>
@@ -104,7 +110,32 @@ function paint() {
   $('l-code').textContent = fop ? 'РНОКПП' : 'ЄДРПОУ';
   $('code').maxLength = fop ? 10 : 8;
   $('code').placeholder = fop ? '10 цифр' : '8 цифр';
+  paintDocs();
 }
+
+const DOCI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
+function paintDocs() {
+  d.files = (d.files || []).filter(x => x.kind === 'edr' || (x.kind === 'dov' && d.kind !== 'ФОП' && d.basis === 'Довіреність'));
+  const kinds = ['edr'].concat(d.kind !== 'ФОП' && d.basis === 'Довіреність' ? ['dov'] : []);
+  $('docs').innerHTML = kinds.map(k => {
+    const x = d.files.find(f => f.kind === k);
+    return x
+      ? `<div class="doc-row">${DOCI}<span><b>${esc(x.name)}</b><small>${DOCS[k]}</small></span><button type="button" class="btn ico sm" data-undoc="${k}" aria-label="Прибрати файл">✕</button></div>`
+      : `<button type="button" class="drop" data-doc="${k}">${DOCI}<span><b>${DOCS[k]}</b><small>PDF або фото</small></span></button>`;
+  }).join('');
+}
+let docKind = '';
+$('docfile').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  try {
+    const x = await readDoc(file);
+    d.files = (d.files || []).filter(f => f.kind !== docKind).concat([Object.assign({ kind: docKind }, x)]);
+    if (!save(d)) { d.files = d.files.filter(f => f.kind !== docKind); toast('Файл завеликий для браузера'); }
+    else stamp();
+  } catch (err) { toast(err.message || 'Не вдалося прочитати файл'); }
+  paintDocs();
+});
 
 function fill() {
   ['name','code','addr1','addr2','tax','spos','sname','dno','ddate','bank','email','phone','prem','start','act'].forEach(k => $(k).value = d[k] || '');
@@ -153,6 +184,9 @@ document.addEventListener('click', e => {
   const k = e.target.closest('[data-kind]'), b = e.target.closest('[data-basis]');
   if (k) { d.kind = k.dataset.kind; paint(); validate(); stamp(); }
   if (b) { d.basis = b.dataset.basis; paint(); stamp(); }
+  const up = e.target.closest('[data-doc]'), un = e.target.closest('[data-undoc]');
+  if (up) { docKind = up.dataset.doc; $('docfile').click(); }
+  if (un) { d.files = d.files.filter(f => f.kind !== un.dataset.undoc); paintDocs(); stamp(); }
 });
 
 f.addEventListener('submit', e => {

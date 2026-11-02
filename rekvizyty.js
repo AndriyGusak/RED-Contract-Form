@@ -31,7 +31,7 @@ const EMPTY = {
   kind: 'ФОП', name: '', code: '', addr1: '', addr2: '', tax: '',
   spos: '', sname: '', basis: 'Статут', dno: '', ddate: '',
   iban: '', bank: '', email: '', phone: '',
-  prem: '', start: '01.11.2026', act: '', agree: false, savedAt: ''
+  prem: '', start: '01.11.2026', act: '', agree: false, files: [], savedAt: ''
 };
 
 // Посилання може підставити приміщення, початок і вид діяльності: index.html?prem=…&start=…&act=…
@@ -99,9 +99,28 @@ function rows(d) {
   r.push(['IBAN', ibanPretty(d.iban), true, ibanOk(d.iban), 'num'], ['Банк', d.bank, true],
     ['E-mail', d.email, true, emailOk(d.email)], ['Телефон', d.phone, true, phoneOk(d.phone), 'num'],
     ['Приміщення', d.prem, false], ['Початок оренди', d.start, false, !d.start || dateOk(d.start), 'num'],
-    ['Що буде в приміщенні', d.act, false]);
+    ['Що буде в приміщенні', d.act, false],
+    ['Документи', (d.files || []).map(x => x.name).join(', '), false]);
   return r;
 }
+// Документи орендаря: виписка з ЄДР, довіреність. Їдуть у зашифрованій відповіді разом з реквізитами.
+// Фото зменшуємо до 2000 px (JPEG), PDF — до 3 МБ, щоб влізло в пам'ять браузера й у відправку.
+const DOCS = { edr: 'Виписка з ЄДР', dov: 'Довіреність' };
+async function readDoc(file) {
+  if (/^image\//.test(file.type)) {
+    const img = await createImageBitmap(file);
+    const k = Math.min(1, 2000 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return { name: file.name.replace(/\.[^.]+$/, '') + '.jpg', type: 'image/jpeg', data: c.toDataURL('image/jpeg', 0.85).split(',')[1] };
+  }
+  if (file.type !== 'application/pdf') throw new Error('Підходять PDF або фото');
+  if (file.size > 3e6) throw new Error('PDF більший за 3 МБ');
+  const data = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = no; r.readAsDataURL(file); });
+  return { name: file.name, type: file.type, data };
+}
+
 const problems = d => rows(d).filter(([, v, need, ok]) => (need && !String(v || '').trim()) || (String(v || '').trim() && ok === false));
 
 // Текст блоку реквізитів, як у договорі: адреса у 2 рядки, «ЄДРПОУ» — лише код.
