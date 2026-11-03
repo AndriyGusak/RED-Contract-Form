@@ -151,7 +151,13 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 
 // Шифрування: AES-GCM для даних, ключ AES загорнуто відкритим ключем RSA-OAEP з config.js.
 // Розшифрувати може лише власник закритого ключа (instrumenty/rozshyfruvaty.mjs).
-const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+// Частинами: String.fromCharCode(...масив) падає на великих файлах (переповнення стеку).
+function b64(buf) {
+  const u = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+  return btoa(s);
+}
 async function encrypt(obj) {
   const pub = await crypto.subtle.importKey('jwk', FORMA.publicKey, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['wrapKey']);
   const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
